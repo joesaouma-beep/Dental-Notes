@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#10B981"/>
+<title>Heidi Clinical Notes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --green:#10B981;--green-d:#059669;--green-l:#ECFDF5;--green-ll:#D1FAE5;
+  --blue:#2563EB;--blue-l:#EFF6FF;--blue-ll:#DBEAFE;
+  --red:#DC2626;--red-l:#FEF2F2;--purple:#7C3AED;--orange:#D97706;
+  --gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;
+  --gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;
+  --gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;--gray-900:#111827;
+  --white:#fff;--safe-b:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--gray-50);font-family:'Inter',sans-serif;font-size:15px;color:var(--gray-900);}
+.screen{display:none;flex-direction:column;height:100vh;overflow:hidden}
+.screen.active{display:flex}
+/* topnav */
+.topnav{background:var(--white);border-bottom:1px solid var(--gray-200);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:56px;}
+.back-btn{background:none;border:none;color:var(--green);font-size:26px;padding:0 8px 0 0;cursor:pointer;line-height:1;}
+.topnav-title{font-size:17px;font-weight:600;color:var(--gray-900);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.topnav-sub{font-size:11px;color:var(--gray-400);}
+.topnav-btn{background:none;border:none;color:var(--green);font-size:14px;font-weight:600;cursor:pointer;padding:6px 0 6px 10px;white-space:nowrap;}
+/* scroll */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.pad{padding:16px;}
+/* bottom tabs */
+.btabs{background:var(--white);border-top:1px solid var(--gray-200);display:flex;flex-shrink:0;padding-bottom:var(--safe-b);}
+.btab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;background:none;border:none;cursor:pointer;color:var(--gray-400);font-family:'Inter',sans-serif;}
+.btab.active,.btab:active{color:var(--green);}
+.btab-icon{font-size:20px;line-height:1;}
+.btab-label{font-size:10px;font-weight:500;}
+/* FAB */
+.fab{position:fixed;bottom:calc(72px + var(--safe-b) + 16px);right:20px;width:56px;height:56px;border-radius:50%;background:var(--green);border:none;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(16,185,129,0.4);cursor:pointer;z-index:50;transition:transform 0.15s;}
+.fab:active{transform:scale(0.93);}
+/* home */
+.stat-row{display:flex;gap:12px;padding:16px;background:var(--white);border-bottom:1px solid var(--gray-100);}
+.stat-box{flex:1;background:var(--gray-50);border-radius:10px;padding:12px;text-align:center;}
+.stat-num{font-size:22px;font-weight:700;color:var(--gray-900);}
+.stat-lbl{font-size:11px;color:var(--gray-500);margin-top:2px;}
+.sec-title{font-size:12px;font-weight:600;color:var(--gray-400);letter-spacing:0.07em;text-transform:uppercase;padding:14px 16px 6px;}
+.sess-card{background:var(--white);margin:0 12px 10px;border-radius:14px;border:1px solid var(--gray-200);padding:14px;display:flex;gap:12px;align-items:flex-start;box-shadow:0 1px 3px rgba(0,0,0,0.04);cursor:pointer;}
+.s-av{width:44px;height:44px;border-radius:50%;background:var(--blue-ll);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--blue);flex-shrink:0;}
+.s-name{font-size:15px;font-weight:600;color:var(--gray-900);}
+.s-meta{font-size:12px;color:var(--gray-400);margin-top:3px;}
+.s-prev{font-size:12px;color:var(--gray-500);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.s-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--green-ll);color:var(--green-d);margin-top:6px;display:inline-block;}
+.empty{text-align:center;padding:60px 24px;color:var(--gray-400);}
+.empty-icon{font-size:52px;margin-bottom:14px;}
+.empty-title{font-size:17px;font-weight:600;color:var(--gray-700);margin-bottom:6px;}
+.empty-sub{font-size:13px;line-height:1.6;}
+/* forms */
+.fg{margin-bottom:20px;}
+.fl{font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:8px;display:block;}
+.fi{width:100%;padding:13px 14px;border:1.5px solid var(--gray-200);border-radius:12px;font-family:'Inter',sans-serif;font-size:15px;color:var(--gray-900);outline:none;background:var(--white);transition:border-color 0.15s;}
+.fi:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,0.12);}
+.ft{width:100%;padding:13px 14px;border:1.5px solid var(--gray-200);border-radius:12px;font-family:'Inter',sans-serif;font-size:14px;color:var(--gray-900);outline:none;resize:none;background:var(--white);line-height:1.6;min-height:90px;transition:border-color 0.15s;}
+.ft:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,0.12);}
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tpl{padding:12px;border:1.5px solid var(--gray-200);border-radius:12px;text-align:center;font-size:13px;font-weight:500;color:var(--gray-600);cursor:pointer;background:var(--white);transition:all 0.15s;}
+.tpl.sel{border-color:var(--green);background:var(--green-l);color:var(--green-d);}
+.tpl-icon{font-size:20px;margin-bottom:4px;}
+/* recording */
+.rec-card{background:var(--white);border-radius:16px;border:1.5px solid var(--gray-200);padding:24px 20px;margin-bottom:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.rec-timer{font-size:42px;font-weight:300;letter-spacing:0.06em;color:var(--gray-900);font-variant-numeric:tabular-nums;margin-bottom:4px;}
+.rec-status{font-size:13px;color:var(--gray-400);margin-bottom:22px;display:flex;align-items:center;justify-content:center;gap:7px;min-height:20px;}
+.rdot{width:9px;height:9px;border-radius:50%;background:var(--red);animation:blink 1s step-end infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.1}}
+.rec-btn-main{width:82px;height:82px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:30px;transition:transform 0.15s;}
+.rec-btn-main:active{transform:scale(0.92);}
+.rec-btn-main.idle{background:var(--green);color:white;box-shadow:0 6px 20px rgba(16,185,129,0.4);}
+.rec-btn-main.recording{background:var(--red);color:white;box-shadow:0 6px 20px rgba(220,38,38,0.35);}
+.rec-btn-main.paused{background:var(--orange);color:white;box-shadow:0 5px 16px rgba(217,119,6,0.35);}
+.rec-hint{font-size:13px;color:var(--gray-400);margin-bottom:14px;}
+.rec-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.rbtn{padding:11px 20px;border-radius:12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;}
+.rbtn.end{background:var(--blue);color:white;}
+.rbtn.end:active{background:#1D4ED8;}
+.rbtn.cancel{background:var(--gray-100);color:var(--gray-600);}
+.rbtn.cancel:active{background:var(--gray-200);}
+.rbtn:disabled{opacity:0.4;cursor:not-allowed;}
+.live-tx{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--gray-700);line-height:1.7;text-align:left;min-height:60px;margin-top:16px;white-space:pre-wrap;display:none;}
+.live-tx-ph{color:var(--gray-400);font-style:italic;}
+/* action btns */
+.abtn{padding:10px 16px;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-700);cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.abtn:active{background:var(--gray-100);}
+.abtn.primary{background:var(--green);color:white;border-color:transparent;}
+.abtn.primary:active{background:var(--green-d);}
+/* processing */
+.proc-screen{display:none;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:var(--white);gap:20px;padding:40px;text-align:center;}
+.proc-screen.active{display:flex;}
+.proc-spin{width:56px;height:56px;border:4px solid var(--gray-200);border-top-color:var(--green);border-radius:50%;animation:spin 0.9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc-title{font-size:20px;font-weight:700;color:var(--gray-900);}
+.proc-sub{font-size:14px;color:var(--gray-500);line-height:1.6;}
+.proc-step{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--gray-50);border-radius:10px;font-size:13px;color:var(--gray-500);width:100%;max-width:280px;}
+.proc-step.done{color:var(--green-d);background:var(--green-l);}
+/* session view */
+.note-tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray-200);flex-shrink:0;overflow-x:auto;}
+.ntab{padding:13px 16px;border:none;border-bottom:2px solid transparent;background:none;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--gray-500);cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.ntab.active{color:var(--green);border-bottom-color:var(--green);}
+.tab-panel{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.tab-panel.active{display:block;}
+.note-blk{background:var(--white);border-radius:14px;border:1px solid var(--gray-200);padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.note-sec-h{font-size:11px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--green-d);margin:14px 0 6px;padding-bottom:5px;border-bottom:1px solid var(--gray-100);}
+.note-sec-h:first-child{margin-top:0;}
+.note-p{font-size:14px;color:var(--gray-700);line-height:1.75;margin-bottom:4px;}
+.note-bull{font-size:14px;color:var(--gray-700);line-height:1.75;padding-left:10px;}
+.note-edit-ta{width:100%;min-height:300px;border:1.5px solid var(--green);border-radius:10px;padding:14px;font-family:'Inter',sans-serif;font-size:14px;line-height:1.7;color:var(--gray-800);outline:none;resize:none;box-shadow:0 0 0 3px rgba(16,185,129,0.12);}
+.task-item{display:flex;align-items:center;gap:12px;padding:13px;background:var(--white);border-radius:12px;border:1px solid var(--gray-200);margin-bottom:8px;}
+.task-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;flex-shrink:0;}
+.task-txt{font-size:14px;color:var(--gray-700);flex:1;line-height:1.4;}
+.task-chk{width:24px;height:24px;border-radius:50%;border:2px solid var(--gray-300);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.15s;background:var(--white);}
+.task-chk.done{background:var(--green);border-color:var(--green);color:white;}
+.tx-view{padding:16px;font-size:14px;color:var(--gray-700);line-height:1.8;white-space:pre-wrap;}
+/* ask heidi */
+.ask-row{background:var(--white);border-top:1px solid var(--gray-200);padding:12px 16px;padding-bottom:calc(12px + var(--safe-b));display:flex;gap:8px;flex-shrink:0;}
+.ask-inp{flex:1;padding:11px 14px;border:1.5px solid var(--gray-200);border-radius:12px;font-family:'Inter',sans-serif;font-size:14px;color:var(--gray-900);outline:none;transition:border-color 0.15s;background:var(--white);}
+.ask-inp:focus{border-color:var(--green);}
+.ask-send{width:44px;height:44px;background:var(--green);border:none;border-radius:12px;color:white;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.ask-send:active{background:var(--green-d);}
+.ask-send:disabled{opacity:0.4;}
+.bubble{padding:12px 14px;border-radius:14px;margin-bottom:10px;font-size:14px;line-height:1.65;}
+.bubble.user{background:var(--green);color:white;margin-left:40px;}
+.bubble.ai{background:var(--white);border:1px solid var(--gray-200);color:var(--gray-800);margin-right:40px;}
+.bubble.load{color:var(--gray-400);background:var(--gray-50);border:1px solid var(--gray-100);margin-right:40px;}
+/* error */
+.err-box{background:var(--red-l);border:1px solid #FECACA;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:14px;line-height:1.5;}
+/* toast */
+.toast{position:fixed;bottom:calc(80px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--gray-900);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;}
+/* modals */
+.modal-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.55);display:none;align-items:flex-end;justify-content:center;}
+.modal-backdrop.show{display:flex;}
+.modal-sheet{background:var(--white);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:48px;height:4px;background:var(--gray-200);border-radius:4px;margin:0 auto 24px;}
+.modal-center{display:flex;flex-direction:column;align-items:center;text-align:center;}
+.modal-icon{width:72px;height:72px;border-radius:50%;background:var(--green-l);border:2px solid var(--green-ll);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:16px;}
+.modal-title{font-size:20px;font-weight:700;color:var(--gray-900);margin-bottom:8px;}
+.modal-sub{font-size:14px;color:var(--gray-500);line-height:1.6;margin-bottom:22px;}
+.steps-box{background:var(--gray-50);border-radius:14px;padding:16px;margin-bottom:20px;width:100%;text-align:left;}
+.steps-lbl{font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;}
+.step-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;}
+.step-row:last-child{margin-bottom:0;}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--green);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-txt{font-size:14px;color:var(--gray-700);line-height:1.5;}
+.modal-btn{width:100%;padding:16px;border:none;border-radius:14px;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.15s;margin-bottom:10px;}
+.modal-btn.green{background:var(--green);color:white;}
+.modal-btn.green:active{background:var(--green-d);}
+.modal-btn.ghost{background:none;color:var(--gray-400);font-size:14px;font-weight:400;padding:10px;}
+/* center modal */
+.center-modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;padding:24px;}
+.center-modal.show{display:flex;}
+.center-card{background:var(--white);border-radius:20px;padding:28px 24px;width:100%;max-width:380px;}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══ -->
+<div id="screen-home" class="screen active">
+  <div class="topnav">
+    <div style="width:32px;height:32px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;font-weight:700;flex-shrink:0;">H</div>
+    <div style="flex:1;">
+      <div style="font-size:17px;font-weight:700;">Heidi</div>
+      <div style="font-size:11px;color:var(--gray-400);">AI Clinical Notes</div>
+    </div>
+    <button class="topnav-btn" onclick="goNew()">+ New</button>
+  </div>
+  <div class="scroll">
+    <div id="home-empty" class="empty" style="display:none;">
+      <div class="empty-icon">🩺</div>
+      <div class="empty-title">No sessions yet</div>
+      <div class="empty-sub">Tap + New to start your first patient visit. Heidi records, transcribes and generates your clinical note automatically.</div>
+      <button class="abtn primary" style="margin:20px auto 0;" onclick="goNew()">+ Start First Session</button>
+    </div>
+    <div id="home-stats" class="stat-row" style="display:none;">
+      <div class="stat-box"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Sessions</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-today">0</div><div class="stat-lbl">Today</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-tasks">0</div><div class="stat-lbl">Tasks</div></div>
+    </div>
+    <div id="home-list-lbl" class="sec-title" style="display:none;">Recent Sessions</div>
+    <div id="home-list"></div>
+    <div style="height:80px;"></div>
+  </div>
+  <div class="btabs">
+    <button class="btab active"><div class="btab-icon">🏠</div><div class="btab-label">Home</div></button>
+    <button class="btab" onclick="goNew()"><div class="btab-icon">➕</div><div class="btab-label">New</div></button>
+    <button class="btab" onclick="showMicModal()"><div class="btab-icon">🎙</div><div class="btab-label">Mic Setup</div></button>
+  </div>
+  <button class="fab" onclick="goNew()">+</button>
+</div>
+
+<!-- ══ NEW SESSION ══ -->
+<div id="screen-new" class="screen">
+  <div class="topnav">
+    <button class="back-btn" onclick="goHome()">‹</button>
+    <div><div class="topnav-title">New Session</div><div class="topnav-sub">Set up your patient visit</div></div>
+  </div>
+  <div class="scroll pad">
+    <div id="new-err" class="err-box" style="display:none;"></div>
+
+    <div class="fg">
+      <label class="fl">Patient Name <span style="color:var(--gray-400);font-weight:400;">(optional)</span></label>
+      <input class="fi" id="inp-patient" placeholder="e.g. Jane Smith" autocomplete="off"/>
+    </div>
+
+    <div class="fg">
+      <label class="fl">Note Template</label>
+      <div class="tpl-grid" id="tpl-grid"></div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">Patient Context <span style="color:var(--gray-400);font-weight:400;">(optional)</span></label>
+      <textarea class="ft" id="inp-ctx" placeholder="Age, history, reason for visit, medications…" rows="3"></textarea>
+    </div>
+
+    <!-- Recording card -->
+    <div class="rec-card" id="rec-card">
+      <div class="rec-timer" id="rec-timer">00:00</div>
+      <div class="rec-status" id="rec-status"><span>Tap to start recording</span></div>
+      <button class="rec-btn-main idle" id="rec-main" onclick="toggleRec()">▶</button>
+      <div class="rec-hint" id="rec-hint">Press ▶ to begin the consultation</div>
+      <div class="rec-controls" id="rec-ctrls" style="display:none;">
+        <button class="rbtn end" onclick="endSession()">⏹ End &amp; Generate</button>
+        <button class="rbtn cancel" onclick="cancelRec()">✕ Cancel</button>
+      </div>
+      <div class="live-tx" id="live-tx"><span class="live-tx-ph">Listening…</span></div>
+    </div>
+
+    <!-- Manual option -->
+    <button class="abtn" id="btn-manual" onclick="toggleManual()" style="font-size:12px;padding:9px 14px;margin-bottom:16px;">✎ Type transcript manually instead</button>
+    <div id="manual-area" style="display:none;">
+      <div class="fg">
+        <label class="fl">Paste or type transcript</label>
+        <textarea class="ft" id="inp-manual" placeholder="Type what was said during the consultation…" rows="6"></textarea>
+      </div>
+      <button class="abtn primary" style="width:100%;justify-content:center;" onclick="genFromManual()">✦ Generate Note</button>
+    </div>
+    <div style="height:24px;"></div>
+  </div>
+</div>
+
+<!-- ══ PROCESSING ══ -->
+<div id="screen-proc" class="proc-screen">
+  <div class="proc-spin"></div>
+  <div class="proc-title">Generating Note…</div>
+  <div class="proc-sub">Heidi is structuring your documentation</div>
+  <div class="proc-step" id="ps1"><span style="font-size:16px;">🎙</span> Transcript captured</div>
+  <div class="proc-step" id="ps2"><span style="font-size:16px;">🧠</span> Analysing content…</div>
+  <div class="proc-step" id="ps3"><span style="font-size:16px;">📄</span> Structuring note…</div>
+  <div class="proc-step" id="ps4"><span style="font-size:16px;">☑</span> Extracting tasks…</div>
+</div>
+
+<!-- ══ SESSION VIEW ══ -->
+<div id="screen-sess" class="screen">
+  <div class="topnav">
+    <button class="back-btn" onclick="goHome()">‹</button>
+    <div style="flex:1;min-width:0;">
+      <div class="topnav-title" id="sv-name">Patient</div>
+      <div class="topnav-sub" id="sv-meta"></div>
+    </div>
+    <button class="topnav-btn" onclick="copyNote()">Copy</button>
+  </div>
+  <div class="note-tabs">
+    <button class="ntab active" onclick="switchTab('note',this)">Note</button>
+    <button class="ntab" onclick="switchTab('tasks',this)">Tasks</button>
+    <button class="ntab" onclick="switchTab('transcript',this)">Transcript</button>
+    <button class="ntab" onclick="switchTab('ask',this)">Ask Heidi</button>
+  </div>
+
+  <!-- NOTE -->
+  <div id="tp-note" class="tab-panel active" style="padding:14px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <button class="abtn" id="btn-edit" onclick="startEdit()">✎ Edit</button>
+      <button class="abtn primary" id="btn-save" onclick="saveEdit()" style="display:none;">✓ Save</button>
+      <button class="abtn" id="btn-discard" onclick="discardEdit()" style="display:none;">Cancel</button>
+      <button class="abtn" onclick="copyNote()">⎘ Copy</button>
+    </div>
+    <div class="note-blk">
+      <div id="note-display"></div>
+      <textarea class="note-edit-ta" id="note-ta" style="display:none;" rows="18"></textarea>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div id="tp-tasks" class="tab-panel" style="padding:14px;">
+    <div id="tasks-list"></div>
+  </div>
+
+  <!-- TRANSCRIPT -->
+  <div id="tp-transcript" class="tab-panel">
+    <div class="tx-view" id="tx-view"></div>
+  </div>
+
+  <!-- ASK HEIDI -->
+  <div id="tp-ask" class="tab-panel" style="display:flex;flex-direction:column;">
+    <div class="scroll pad" id="ask-msgs" style="flex:1;"></div>
+    <div class="ask-row">
+      <input class="ask-inp" id="ask-inp" placeholder="Ask about this note… e.g. write a referral" onkeydown="if(event.key==='Enter')sendAsk()"/>
+      <button class="ask-send" id="ask-send" onclick="sendAsk()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══ MIC PERMISSION MODAL ══ -->
+<div class="modal-backdrop" id="mic-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-center">
+      <div class="modal-icon">🎙</div>
+      <div class="modal-title">Microphone Access</div>
+      <div class="modal-sub">Heidi needs your microphone to record consultations. Tap below — Chrome will ask you to allow it.</div>
+    </div>
+    <div class="steps-box">
+      <div class="steps-lbl">WHAT HAPPENS NEXT</div>
+      <div class="step-row"><div class="step-num">1</div><div class="step-txt">Tap <strong>"Enable Microphone"</strong> below</div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-txt">Chrome shows a popup — tap <strong>"Allow"</strong></div></div>
+      <div class="step-row"><div class="step-num">3</div><div class="step-txt">Done — start recording your first visit</div></div>
+    </div>
+    <button class="modal-btn green" id="mic-allow-btn" onclick="requestMic()">🎙 &nbsp;Enable Microphone</button>
+    <button class="modal-btn ghost" onclick="skipMic()">Skip — I'll type notes manually</button>
+  </div>
+</div>
+
+<!-- ══ MIC BLOCKED MODAL ══ -->
+<div class="center-modal" id="mic-blocked-modal">
+  <div class="center-card">
+    <div style="font-size:40px;text-align:center;margin-bottom:14px;">🔒</div>
+    <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px;color:var(--gray-900);">Microphone Blocked</div>
+    <div style="font-size:14px;color:var(--gray-500);text-align:center;line-height:1.6;margin-bottom:18px;">Chrome previously blocked mic access. Here's how to fix it:</div>
+    <div style="background:var(--gray-50);border-radius:12px;padding:16px;margin-bottom:20px;font-size:14px;color:var(--gray-700);line-height:2.1;">
+      1. Tap the <strong>⋮ menu</strong> in Chrome (top right)<br>
+      2. Tap <strong>Settings</strong><br>
+      3. Tap <strong>Site Settings → Microphone</strong><br>
+      4. Find this file and set to <strong>Allow</strong><br>
+      5. Come back and tap <strong>Enable Microphone</strong> again
+    </div>
+    <button onclick="closeMicBlocked();showMicModal();" style="width:100%;padding:14px;background:var(--green);color:white;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;">Try Again</button>
+    <button onclick="closeMicBlocked()" style="width:100%;padding:10px;background:none;color:var(--gray-400);border:none;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;">Use manual notes instead</button>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────
+const SK = 'heidi_v3';
+let sessions = [], activeSession = null;
+let recState = 'idle', recSecs = 0, recTimer = null;
+let recognition = null, liveTx = '', finalTx = '';
+let selTpl = 'General Consultation';
+let manualOpen = false, editingNote = false;
+let checkedTasks = {};
+
+const TPLS = [
+  {n:'General Consultation',i:'🩺'},{n:'SOAP Note',i:'📋'},
+  {n:'Mental Health',i:'🧠'},{n:'Follow-up',i:'🔄'},
+  {n:'Referral Letter',i:'📨'},{n:'Discharge Summary',i:'🏥'},
+  {n:'Allied Health',i:'💪'},{n:'Pediatrics',i:'👶'},
+];
+const TCOLORS = {referral:{bg:'#F5F3FF',c:'#7C3AED'},order:{bg:'#ECFEFF',c:'#0891B2'},followup:{bg:'#ECFDF5',c:'#059669'},default:{bg:'#F3F4F6',c:'#6B7280'}};
+
+// ─── STORAGE ─────────────────────────────────────
+function save() { try { localStorage.setItem(SK, JSON.stringify(sessions)); } catch(e){} }
+function load() { try { const d=localStorage.getItem(SK); if(d) sessions=JSON.parse(d); } catch(e){ sessions=[]; } }
+
+// ─── SCREENS ─────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen,.proc-screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome() { cancelRec(); showScreen('screen-home'); renderHome(); }
+function goNew()  { resetNew(); showScreen('screen-new'); }
+function goSess(s){ activeSession=s; renderSess(); showScreen('screen-sess'); }
+
+// ─── HOME ─────────────────────────────────────────
+function renderHome() {
+  const list=document.getElementById('home-list');
+  const empty=document.getElementById('home-empty');
+  const stats=document.getElementById('home-stats');
+  const lbl=document.getElementById('home-list-lbl');
+  if (!sessions.length) {
+    empty.style.display='block'; stats.style.display='none'; lbl.style.display='none'; list.innerHTML=''; return;
+  }
+  empty.style.display='none'; stats.style.display='flex'; lbl.style.display='block';
+  const now=new Date();
+  const todays=sessions.filter(s=>new Date(s.ts).toDateString()===now.toDateString()).length;
+  const allTasks=sessions.reduce((a,s)=>a+(s.tasks?.length||0),0);
+  document.getElementById('stat-total').textContent=sessions.length;
+  document.getElementById('stat-today').textContent=todays;
+  document.getElementById('stat-tasks').textContent=allTasks;
+  list.innerHTML=sessions.map(s=>`
+    <div class="sess-card" onclick="goSess(sessions.find(x=>x.id===${s.id}))">
+      <div class="s-av">${ini(s.patientName)}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="s-name">${esc(s.patientName)}</div>
+        <div class="s-meta">${esc(s.template)} · ${ago(s.ts)}${s.duration?' · '+fmt(s.duration):''}</div>
+        <div class="s-prev">${esc((s.note||'').replace(/\*\*/g,'').slice(0,80))}…</div>
+        <span class="s-badge">✓ Note ready</span>
+      </div>
+    </div>`).join('');
+}
+
+// ─── NEW SESSION ──────────────────────────────────
+function buildTplGrid() {
+  document.getElementById('tpl-grid').innerHTML=TPLS.map(t=>
+    `<div class="tpl ${t.n===selTpl?'sel':''}" onclick="selTemplate('${t.n}',this)">
+      <div class="tpl-icon">${t.i}</div><div>${t.n}</div>
+    </div>`).join('');
+}
+function selTemplate(n,el) {
+  selTpl=n;
+  document.querySelectorAll('.tpl').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function resetNew() {
+  document.getElementById('inp-patient').value='';
+  document.getElementById('inp-ctx').value='';
+  document.getElementById('inp-manual').value='';
+  document.getElementById('new-err').style.display='none';
+  liveTx=''; finalTx=''; recSecs=0;
+  manualOpen=false;
+  document.getElementById('manual-area').style.display='none';
+  document.getElementById('btn-manual').textContent='✎ Type transcript manually instead';
+  document.getElementById('rec-card').style.display='block';
+  buildTplGrid(); updateRecUI();
+}
+function toggleManual() {
+  manualOpen=!manualOpen;
+  document.getElementById('manual-area').style.display=manualOpen?'block':'none';
+  document.getElementById('rec-card').style.display=manualOpen?'none':'block';
+  document.getElementById('btn-manual').textContent=manualOpen?'🎙 Use voice recording instead':'✎ Type transcript manually instead';
+  if(!manualOpen) cancelRec();
+}
+function showNewErr(msg) {
+  const el=document.getElementById('new-err');
+  el.textContent=msg; el.style.display='block';
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+// ─── RECORDING ────────────────────────────────────
+function toggleRec() {
+  if(recState==='idle') startRec();
+  else if(recState==='recording') pauseRec();
+  else if(recState==='paused') resumeRec();
+}
+
+function startRec() {
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showNewErr('Speech recognition not available. Please use Google Chrome on Android, or use the manual transcript option.');return;}
+  liveTx=''; finalTx='';
+  recognition=new SR();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='en-US';
+
+  recognition.onstart=()=>{
+    // Successfully started — update UI
+    recState='recording';
+    recTimer=setInterval(()=>{recSecs++;updateRecUI();},1000);
+    updateRecUI();
+  };
+
+  recognition.onresult=(e)=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) finalTx+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    liveTx=finalTx+interim;
+    const box=document.getElementById('live-tx');
+    box.style.display='block';
+    box.innerHTML=liveTx||'<span class="live-tx-ph">Listening…</span>';
+  };
+
+  recognition.onerror=(e)=>{
+    console.log('SpeechRecognition error:', e.error);
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+      cancelRec();
+      localStorage.setItem('heidi_mic','denied');
+      document.getElementById('mic-blocked-modal').classList.add('show');
+    } else if(e.error==='no-speech'){
+      // silence is fine — keep going
+    } else if(e.error==='network'){
+      // network blip — try to restart
+    }
+    // do NOT call showNewErr for recoverable errors
+  };
+
+  recognition.onend=()=>{
+    if(recState==='recording'){
+      // auto-restart to keep continuous recording
+      try{recognition.start();}catch(err){}
+    }
+  };
+
+  try {
+    recognition.start();
+    // Note: onstart fires if permission is granted
+    // If permission was never granted, onerror fires with 'not-allowed'
+  } catch(err) {
+    showNewErr('Could not start recording: '+err.message);
+  }
+}
+
+function pauseRec() {
+  if(recognition){try{recognition.stop();}catch(e){} recognition=null;}
+  clearInterval(recTimer);
+  recState='paused';
+  updateRecUI();
+}
+
+function resumeRec() {
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  const base=liveTx;
+  recognition=new SR();
+  recognition.continuous=true; recognition.interimResults=true; recognition.lang='en-US';
+  let extra='';
+  recognition.onstart=()=>{recState='recording';recTimer=setInterval(()=>{recSecs++;updateRecUI();},1000);updateRecUI();};
+  recognition.onresult=(e)=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) extra+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    liveTx=base+' '+extra+interim;
+    document.getElementById('live-tx').textContent=liveTx;
+  };
+  recognition.onerror=(e)=>{if(e.error==='not-allowed'){cancelRec();document.getElementById('mic-blocked-modal').classList.add('show');}};
+  recognition.onend=()=>{if(recState==='recording'){try{recognition.start();}catch(e){}}};
+  try{recognition.start();}catch(e){}
+}
+
+function cancelRec() {
+  if(recognition){try{recognition.stop();}catch(e){} recognition=null;}
+  clearInterval(recTimer);
+  recState='idle'; recSecs=0; liveTx=''; finalTx='';
+  updateRecUI();
+}
+
+function updateRecUI() {
+  const btn=document.getElementById('rec-main');
+  const status=document.getElementById('rec-status');
+  const timer=document.getElementById('rec-timer');
+  const ctrls=document.getElementById('rec-ctrls');
+  const hint=document.getElementById('rec-hint');
+  const lbox=document.getElementById('live-tx');
+  timer.textContent=fmt(recSecs);
+  btn.className='rec-btn-main '+recState;
+  if(recState==='idle'){
+    btn.textContent='▶'; status.innerHTML='<span>Tap to start recording</span>';
+    ctrls.style.display='none'; hint.style.display='block'; lbox.style.display='none';
+  } else if(recState==='recording'){
+    btn.textContent='⏸'; status.innerHTML='<span class="rdot"></span><span>Recording…</span>';
+    ctrls.style.display='flex'; hint.style.display='none'; lbox.style.display='block';
+  } else if(recState==='paused'){
+    btn.textContent='▶'; status.innerHTML='<span>Paused — tap to resume</span>';
+    ctrls.style.display='flex'; hint.style.display='none';
+  }
+}
+
+async function endSession() {
+  const tx=liveTx.trim();
+  if(!tx){showNewErr('No audio recorded yet. Please record something first, or use the manual transcript option.');return;}
+  await runGen(tx);
+}
+async function genFromManual() {
+  const tx=document.getElementById('inp-manual').value.trim();
+  if(!tx){showNewErr('Please enter a transcript first.');return;}
+  await runGen(tx);
+}
+
+// ─── AI GENERATION ────────────────────────────────
+async function runGen(tx) {
+  cancelRec();
+  showScreen('screen-proc');
+  animSteps();
+  const pName=document.getElementById('inp-patient').value.trim()||'Anonymous Patient';
+  const ctx=document.getElementById('inp-ctx').value.trim();
+  try {
+    const {note,tasks}=await callClaude(tx,selTpl,ctx);
+    const sess={id:Date.now(),ts:Date.now(),patientName:pName,template:selTpl,context:ctx,transcript:tx,note,tasks,duration:recSecs};
+    sessions.unshift(sess);
+    if(sessions.length>50) sessions.pop();
+    save();
+    goSess(sess);
+  } catch(e) {
+    showScreen('screen-new');
+    showNewErr('Failed to generate note: '+(e.message||'Unknown error')+'. Check your internet connection and try again.');
+  }
+}
+
+let stepInt=null;
+function animSteps() {
+  ['ps1','ps2','ps3','ps4'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('done');});
+  document.getElementById('ps1').classList.add('done');
+  let i=1; const ids=['ps1','ps2','ps3','ps4'];
+  clearInterval(stepInt);
+  stepInt=setInterval(()=>{ if(i<ids.length){document.getElementById(ids[i]).classList.add('done');i++;}else{clearInterval(stepInt);} },900);
+}
+
+async function callClaude(tx,tpl,ctx) {
+  const SYS=`You are Heidi, an AI clinical documentation assistant. Generate a professional clinical note.
+
+Structure as:
+
+**SUBJECTIVE**
+Chief complaint and history of present illness.
+
+**OBJECTIVE**
+Examination findings, vitals, investigations.
+
+**ASSESSMENT**
+Diagnosis or clinical impression.
+
+**PLAN**
+Management, medications, referrals, follow-up.
+
+Then write exactly "===TASKS===" on a new line followed by a JSON array of 2-4 tasks:
+[{"task":"Write referral for cardiologist","type":"referral"}]
+Types: referral, order, followup, default. Missing info = "Not documented."`;
+
+  const msg=`Template: ${tpl}\n${ctx?'Context: '+ctx+'\n':''}Dictation:\n${tx}`;
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:SYS,messages:[{role:'user',content:msg}]})
+  });
+  if(!res.ok){const err=await res.text();throw new Error('API '+res.status+': '+err);}
+  const data=await res.json();
+  const text=data.content?.map(b=>b.text||'').join('')||'';
+  const [noteText,tasksPart]=text.split('===TASKS===');
+  let tasks=[];
+  if(tasksPart){try{tasks=JSON.parse(tasksPart.trim().replace(/```json|```/g,''));}catch(e){}}
+  return{note:noteText.trim(),tasks};
+}
+
+// ─── SESSION VIEW ─────────────────────────────────
+function renderSess() {
+  if(!activeSession) return;
+  document.getElementById('sv-name').textContent=activeSession.patientName;
+  document.getElementById('sv-meta').textContent=activeSession.template+' · '+ago(activeSession.ts)+(activeSession.duration?' · '+fmt(activeSession.duration):'');
+  renderNote(); renderTasks();
+  document.getElementById('tx-view').textContent=activeSession.transcript||'No transcript recorded.';
+  document.getElementById('ask-msgs').innerHTML='';
+  document.getElementById('ask-inp').value='';
+  // reset tabs
+  document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  ['tp-note','tp-tasks','tp-transcript','tp-ask'].forEach((id,i)=>{
+    const p=document.getElementById(id);
+    if(i===0){p.classList.add('active');p.style.display='block';}
+    else{p.classList.remove('active');p.style.display='none';}
+  });
+  editingNote=false;
+  document.getElementById('btn-edit').style.display='';
+  document.getElementById('btn-save').style.display='none';
+  document.getElementById('btn-discard').style.display='none';
+  document.getElementById('note-display').style.display='';
+  document.getElementById('note-ta').style.display='none';
+}
+
+function renderNote() {
+  document.getElementById('note-display').innerHTML=(activeSession?.note||'').split('\n').map(line=>{
+    if(line.startsWith('**')&&line.endsWith('**')) return`<div class="note-sec-h">${esc(line.replace(/\*\*/g,''))}</div>`;
+    if(line.startsWith('- ')) return`<div class="note-bull">• ${esc(line.slice(2))}</div>`;
+    if(!line.trim()) return'<div style="height:6px"></div>';
+    return`<p class="note-p">${esc(line)}</p>`;
+  }).join('');
+}
+
+function renderTasks() {
+  const tasks=activeSession?.tasks||[];
+  if(!tasks.length){document.getElementById('tasks-list').innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--gray-400);font-size:14px;">No tasks for this session.</div>';return;}
+  document.getElementById('tasks-list').innerHTML=tasks.map((t,i)=>{
+    const c=TCOLORS[t.type]||TCOLORS.default;
+    const done=checkedTasks[activeSession.id+'-'+i];
+    return`<div class="task-item">
+      <span class="task-badge" style="background:${c.bg};color:${c.c};">${t.type||'task'}</span>
+      <span class="task-txt" style="${done?'text-decoration:line-through;color:var(--gray-400);':''}">${esc(t.task)}</span>
+      <div class="task-chk ${done?'done':''}" onclick="toggleTask(${i})">${done?'✓':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleTask(i){checkedTasks[activeSession.id+'-'+i]=!checkedTasks[activeSession.id+'-'+i];renderTasks();}
+
+function switchTab(name,el){
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const map={note:'tp-note',tasks:'tp-tasks',transcript:'tp-transcript',ask:'tp-ask'};
+  Object.entries(map).forEach(([k,id])=>{
+    const p=document.getElementById(id);
+    if(k===name){p.classList.add('active');p.style.display=k==='ask'?'flex':'block';}
+    else{p.classList.remove('active');p.style.display='none';}
+  });
+}
+
+function startEdit(){
+  editingNote=true;
+  document.getElementById('note-display').style.display='none';
+  const ta=document.getElementById('note-ta');
+  ta.value=activeSession.note; ta.style.display='block';
+  document.getElementById('btn-edit').style.display='none';
+  document.getElementById('btn-save').style.display='';
+  document.getElementById('btn-discard').style.display='';
+}
+function saveEdit(){
+  activeSession.note=document.getElementById('note-ta').value;
+  const idx=sessions.findIndex(s=>s.id===activeSession.id);
+  if(idx>=0){sessions[idx]=activeSession;save();}
+  discardEdit(); renderNote(); showToast('Note saved');
+}
+function discardEdit(){
+  editingNote=false;
+  document.getElementById('note-ta').style.display='none';
+  document.getElementById('note-display').style.display='';
+  document.getElementById('btn-edit').style.display='';
+  document.getElementById('btn-save').style.display='none';
+  document.getElementById('btn-discard').style.display='none';
+}
+function copyNote(){
+  const text=activeSession?.note||'';
+  if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>showToast('Note copied'));}
+  else{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('Note copied');}
+}
+
+// ─── ASK HEIDI ────────────────────────────────────
+async function sendAsk(){
+  const inp=document.getElementById('ask-inp');
+  const q=inp.value.trim(); if(!q) return;
+  inp.value='';
+  const msgs=document.getElementById('ask-msgs');
+  msgs.innerHTML+=`<div class="bubble user">${esc(q)}</div>`;
+  const lid='al'+Date.now();
+  msgs.innerHTML+=`<div class="bubble load" id="${lid}">Thinking…</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  document.getElementById('ask-send').disabled=true;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,
+        system:'You are Heidi, an AI clinical assistant. Answer questions about the clinical note concisely and professionally.',
+        messages:[{role:'user',content:`Note:\n${activeSession.note}\n\nQuestion: ${q}`}]})
+    });
+    const d=await res.json();
+    const ans=d.content?.map(b=>b.text||'').join('')||'No response.';
+    document.getElementById(lid).outerHTML=`<div class="bubble ai">${esc(ans)}</div>`;
+  }catch(e){
+    document.getElementById(lid).outerHTML=`<div class="bubble ai" style="color:var(--red);">Error: ${esc(e.message)}</div>`;
+  }
+  document.getElementById('ask-send').disabled=false;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ─── MIC PERMISSION ───────────────────────────────
+// Strategy: use SpeechRecognition itself to trigger Chrome's mic permission.
+// getUserMedia is blocked on file:// — SpeechRecognition is NOT.
+function showMicModal(){
+  document.getElementById('mic-modal').classList.add('show');
+  localStorage.removeItem('heidi_mic'); // reset so they can retry
+}
+function hideMicModal(){ document.getElementById('mic-modal').classList.remove('show'); }
+function skipMic(){ hideMicModal(); localStorage.setItem('heidi_mic','skipped'); showToast('Use the manual transcript option to type notes'); }
+function closeMicBlocked(){ document.getElementById('mic-blocked-modal').classList.remove('show'); }
+
+function requestMic(){
+  const btn=document.getElementById('mic-allow-btn');
+  btn.textContent='⏳  Requesting…'; btn.disabled=true;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    hideMicModal(); btn.disabled=false;
+    showToast('Please use Google Chrome on Android for voice recording');
+    return;
+  }
+  const test=new SR();
+  test.continuous=false; test.interimResults=false; test.lang='en-US';
+  let resolved=false;
+  function resolve(granted){
+    if(resolved) return; resolved=true;
+    btn.textContent='🎙  Enable Microphone'; btn.disabled=false;
+    hideMicModal();
+    if(granted){
+      localStorage.setItem('heidi_mic','granted');
+      showToast('✓ Microphone ready — tap ▶ to start recording!');
+    } else {
+      localStorage.setItem('heidi_mic','denied');
+      document.getElementById('mic-blocked-modal').classList.add('show');
+    }
+    try{test.stop();}catch(e){}
+  }
+  test.onstart=()=>resolve(true);
+  test.onresult=()=>resolve(true);
+  test.onerror=(e)=>{
+    if(e.error==='no-speech') resolve(true); // silence = mic worked fine
+    else if(e.error==='not-allowed'||e.error==='service-not-allowed') resolve(false);
+    else resolve(true); // other errors still mean mic was accessible
+  };
+  test.onend=()=>{
+    // If nothing fired yet, assume it worked
+    setTimeout(()=>{ if(!resolved) resolve(true); }, 300);
+  };
+  try { test.start(); } catch(e){ resolve(false); }
+}
+
+function checkMicOnLoad(){
+  const s=localStorage.getItem('heidi_mic');
+  if(!s) setTimeout(showMicModal, 700); // first time — show the modal
+}
+
+// ─── UTILS ────────────────────────────────────────
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function ago(ts){
+  const d=Date.now()-ts,m=Math.floor(d/60000);
+  if(m<1) return 'Just now'; if(m<60) return m+'m ago';
+  const h=Math.floor(m/60); if(h<24) return h+'h ago';
+  const days=Math.floor(h/24); if(days===1) return 'Yesterday';
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function ini(name){ return(name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>'); }
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ─── INIT ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  load(); buildTplGrid(); renderHome(); updateRecUI(); checkMicOnLoad();
+});
+</script>
+</body>
+</html>
