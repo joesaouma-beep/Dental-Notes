@@ -44,11 +44,20 @@ jobs:
           java-version: "17"
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: android
+      # Kotlin and KSP errors are printed long before Gradle's stack trace, which
+      # is what a truncated log shows. Repeat them at the end so a failed run is
+      # readable without downloading the whole log.
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          ./gradlew assembleDebug 2>&1 | tee build.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            echo "::group::Compilation errors"
+            grep -E "^e: |^w: .*error|error:" build.log | head -100
+            echo "::endgroup::"
+          fi
+          exit "$status"
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
