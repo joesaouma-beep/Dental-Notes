@@ -40,6 +40,13 @@ android {
     buildFeatures {
         compose = true
     }
+    // The learning engine, templates and note generation live in shared/ and are
+    // compiled into both this app and the desktop app from the same files.
+    sourceSets {
+        getByName("main") {
+            java.srcDirs("src/main/java", "../../shared/src/main/kotlin")
+        }
+    }
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }

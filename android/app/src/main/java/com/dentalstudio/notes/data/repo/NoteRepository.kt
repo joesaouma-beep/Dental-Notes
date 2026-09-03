@@ -3,13 +3,14 @@ package com.dentalstudio.notes.data.repo
 import com.dentalstudio.notes.data.db.AppDatabase
 import com.dentalstudio.notes.data.db.EditEventEntity
 import com.dentalstudio.notes.data.db.NoteEntity
-import com.dentalstudio.notes.data.generate.AnthropicNoteGenerator
-import com.dentalstudio.notes.data.generate.GenerationRequest
-import com.dentalstudio.notes.data.generate.OnDeviceNoteGenerator
+import com.dentalstudio.notes.generate.AnthropicNoteGenerator
+import com.dentalstudio.notes.generate.GenerationRequest
+import com.dentalstudio.notes.generate.OnDeviceNoteGenerator
 import com.dentalstudio.notes.data.prefs.AppSettings
 import com.dentalstudio.notes.data.prefs.SettingsStore
 import com.dentalstudio.notes.domain.NoteTemplate
 import com.dentalstudio.notes.learning.LearnedRule
+import com.dentalstudio.notes.learning.LearningMerge
 import com.dentalstudio.notes.learning.MinedEdit
 import com.dentalstudio.notes.learning.RuleApplier
 import com.dentalstudio.notes.learning.RuleMiner
@@ -202,32 +203,21 @@ class NoteRepository(
     }
 
     private suspend fun absorb(mined: MinedEdit, existing: List<LearnedRule>, now: Long): LearningOutcome {
-        var added = 0
-        var reinforced = 0
+        // What to change is decided in shared code so the phone and the desktop
+        // app learn identically; this only applies the plan to Room.
+        val plan = LearningMerge.plan(mined, existing)
 
-        mined.rules.forEach { candidate ->
-            val match = rules.find(
-                candidate.type.name, candidate.scope, candidate.pattern, candidate.replacement,
-            )
-            if (match == null) {
-                rules.insert(candidate.toEntity(now))
-                added++
-            } else {
-                rules.reinforce(match.id, now)
-                reinforced++
-            }
-        }
-
-        val contradicted = mined.contradictedPatterns.toSet()
-        existing.filter { it.pattern in contradicted }.forEach { rules.contradict(it.id) }
-        rules.retireWeakRules()
+        plan.newRules.forEach { rules.insert(it.toEntity(now)) }
+        plan.reinforcedIds.forEach { rules.reinforce(it, now) }
+        plan.contradictedIds.forEach { rules.contradict(it) }
+        plan.retiredIds.forEach { rules.setEnabled(it, false) }
 
         updateProfile(GLOBAL_SCOPE, mined, now)
         updateProfile(mined.observation.templateId, mined, now)
 
         return LearningOutcome(
-            newRules = added,
-            reinforcedRules = reinforced,
+            newRules = plan.newCount,
+            reinforcedRules = plan.reinforcedCount,
             wordsTrimmed = (mined.observation.draftWords - mined.observation.finalWords).coerceAtLeast(0),
         )
     }

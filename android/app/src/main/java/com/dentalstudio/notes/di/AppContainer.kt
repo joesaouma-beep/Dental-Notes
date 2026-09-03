@@ -2,7 +2,7 @@ package com.dentalstudio.notes.di
 
 import android.content.Context
 import com.dentalstudio.notes.data.db.AppDatabase
-import com.dentalstudio.notes.data.generate.AnthropicNoteGenerator
+import com.dentalstudio.notes.generate.AnthropicNoteGenerator
 import com.dentalstudio.notes.data.prefs.SettingsStore
 import com.dentalstudio.notes.data.repo.NoteRepository
 import com.dentalstudio.notes.speech.DictationController

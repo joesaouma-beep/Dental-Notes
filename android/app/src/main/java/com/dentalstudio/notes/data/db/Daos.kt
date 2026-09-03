@@ -79,13 +79,6 @@ interface RuleDao {
     @Query("UPDATE rules SET enabled = :enabled WHERE id = :id")
     suspend fun setEnabled(id: Long, enabled: Boolean)
 
-    /**
-     * Retires preferences the clinician has argued with more often than not, so
-     * a habit that was really a one-off stops steering future notes.
-     */
-    @Query("UPDATE rules SET enabled = 0 WHERE contradictions >= 3 AND CAST(occurrences AS REAL) / (occurrences + contradictions) < 0.4")
-    suspend fun retireWeakRules()
-
     @Query("DELETE FROM rules WHERE id = :id")
     suspend fun delete(id: Long)
 

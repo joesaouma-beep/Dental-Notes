@@ -2,7 +2,7 @@ package com.dentalstudio.notes.ui.record
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dentalstudio.notes.data.generate.GenerationException
+import com.dentalstudio.notes.generate.GenerationException
 import com.dentalstudio.notes.data.prefs.AppSettings
 import com.dentalstudio.notes.data.prefs.SettingsStore
 import com.dentalstudio.notes.data.repo.NoteRepository

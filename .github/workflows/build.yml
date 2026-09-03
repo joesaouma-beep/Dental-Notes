@@ -1,0 +1,88 @@
+name: Build
+
+# Produces installable files as workflow artifacts:
+#   dental-notes-apk       — the Android app, installable on a phone
+#   dental-notes-windows   — the Windows installer, plus an unpacked build
+# Run it from the Actions tab ("Run workflow") or let it run on a push.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Learning engine tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Run tests
+        run: ./gradlew :shared:test :desktop-core:test
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            shared/build/reports/tests/test
+            desktop-core/build/reports/tests/test
+          if-no-files-found: ignore
+
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: android
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: dental-notes-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+  windows:
+    name: Windows desktop
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+
+      # The unpacked application always builds; the .msi additionally needs the
+      # WiX toolset, so it is allowed to fail without losing the rest.
+      - name: Build application image
+        run: ./gradlew :desktop:createDistributable --stacktrace
+
+      - name: Build MSI installer
+        id: msi
+        continue-on-error: true
+        run: ./gradlew :desktop:packageMsi --stacktrace
+
+      - name: Upload Windows build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dental-notes-windows
+          path: |
+            desktop/build/compose/binaries/main/msi/*.msi
+            desktop/build/compose/binaries/main/app/**
+          if-no-files-found: error

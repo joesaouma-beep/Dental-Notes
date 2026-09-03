@@ -12,24 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
-enum class DictationStatus { IDLE, LISTENING, PAUSED, ERROR }
-
-data class DictationState(
-    val status: DictationStatus = DictationStatus.IDLE,
-    /** Everything committed so far. */
-    val finalText: String = "",
-    /** The phrase currently being recognised, not yet committed. */
-    val partialText: String = "",
-    /** Microphone level, 0f to 1f, for the waveform. */
-    val amplitude: Float = 0f,
-    val error: String? = null,
-) {
-    val fullText: String
-        get() = listOf(finalText, partialText).filter { it.isNotBlank() }.joinToString(" ").trim()
-
-    val hasContent: Boolean get() = fullText.isNotBlank()
-}
-
 /**
  * Continuous dictation on top of Android's speech recogniser.
  *
