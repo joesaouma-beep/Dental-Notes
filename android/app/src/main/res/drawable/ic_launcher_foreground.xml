@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A stylised tooth with a sound wave through it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,26c-6,0 -8.5,-3 -14,-3c-8,0 -13,6.5 -13,15c0,10 3,17 5.5,25c1.8,5.8 2.6,14 6.9,14c4.2,0 4.6,-8.6 6.4,-14.6c1,-3.4 2.6,-5.4 4.2,-5.4c1.6,0 3.2,2 4.2,5.4c1.8,6 2.2,14.6 6.4,14.6c4.3,0 5.1,-8.2 6.9,-14c2.5,-8 5.5,-15 5.5,-25c0,-8.5 -5,-15 -13,-15C62.5,23 60,26 54,26z" />
+    <path
+        android:fillColor="#0FBFA0"
+        android:pathData="M53,44h2v20h-2z" />
+    <path
+        android:fillColor="#0FBFA0"
+        android:pathData="M46,49h2v10h-2z" />
+    <path
+        android:fillColor="#0FBFA0"
+        android:pathData="M60,49h2v10h-2z" />
+</vector>

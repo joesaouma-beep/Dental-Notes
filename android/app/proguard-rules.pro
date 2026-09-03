@@ -1,0 +1,7 @@
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.**
+-keepclassmembers class kotlinx.serialization.json.** { *; }
+-keep,includedescriptorclasses class com.dentalstudio.notes.**$$serializer { *; }
+-keepclassmembers class com.dentalstudio.notes.** { *** Companion; }
+-keepclasseswithmembers class com.dentalstudio.notes.** { kotlinx.serialization.KSerializer serializer(...); }
+-keep class * extends androidx.room.RoomDatabase { <init>(); }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_mint">#0FBFA0</color>
+    <color name="brand_ink">#0E1B1F</color>
+    <color name="surface_light">#F6FAFB</color>
+    <color name="surface_dark">#0A1316</color>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Clinical notes and the API key must not leave the device in a backup. -->
+<full-backup-content>
+    <exclude domain="database" path="dental-notes.db" />
+    <exclude domain="sharedpref" path="." />
+    <exclude domain="file" path="datastore" />
+</full-backup-content>
