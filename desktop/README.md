@@ -38,7 +38,26 @@ kept as `.corrupt` rather than being overwritten.
 
 ## Dictation
 
-Recognition runs locally through [Vosk](https://alphacephei.com/vosk/models).
-Download a model, unpack it, and point at the folder in Settings — nothing is
-uploaded. Without a model the transcript box is an ordinary text field, so
-Windows dictation (Win+H) types straight into it.
+Recognition runs on this machine through [Vosk](https://alphacephei.com/vosk/models).
+Download a model, unpack it, and point Settings at the unpacked folder — the one
+containing `am/` and `conf/`. Nothing is uploaded. Without a model the transcript
+box is an ordinary text field, so Windows dictation (Win+H) types straight into it.
+
+### Which model
+
+| Model | Size | When |
+| --- | --- | --- |
+| `vosk-model-en-us-0.42-gigaspeech` | ~2.3 GB | **Start here on a desk PC.** Trained on varied real-world speech, so it copes better with non-US accents than the LibriSpeech-weighted models. |
+| `vosk-model-en-us-0.22` | ~1.8 GB | Solid alternative if gigaspeech is slow to load or memory is tight. |
+| `vosk-model-small-en-us-0.15` | ~40 MB | Testing that the microphone path works at all. Too error-prone for real notes. |
+
+Vosk publishes no Australian English model, so an accent penalty is unavoidable.
+It matters less than it sounds: with a Claude API key set, the transcript is not
+the note — the model is instructed to correct unambiguous speech-recognition
+errors in dental terms while leaving every tooth number, dose and measurement
+exactly as dictated. **Without an API key that safety net is gone**, because the
+on-device generator only routes sentences to headings and never rewrites clinical
+content. Pick the largest model you can if you are running without a key.
+
+Expect dental vocabulary — occlusal, distal, amalgam, gingivitis — to be the
+weak point rather than the accent. Read the transcript before generating.

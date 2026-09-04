@@ -86,9 +86,10 @@ and never rewrites clinical content. You always leave the appointment with a not
 - **Android** — continuous recognition through the system recogniser, restarted
   silently across pauses so you can talk through a whole appointment.
 - **Windows** — recognition runs locally through a [Vosk](https://alphacephei.com/vosk/models)
-  model you point the app at in Settings; nothing is uploaded. Without a model
-  the transcript box is an ordinary text field, so Windows' own dictation
-  (Win+H) types straight into it.
+  model you point the app at in Settings; nothing is uploaded. Start with
+  `vosk-model-en-us-0.42-gigaspeech`; see [desktop/README.md](desktop/README.md)
+  for the trade-offs. Without a model the transcript box is an ordinary text
+  field, so Windows' own dictation (Win+H) types straight into it.
 
 ## Templates
 

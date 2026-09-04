@@ -59,9 +59,15 @@ class DesktopDictation {
             unavailableReason = "No speech model configured. Set one in Settings, or use Windows dictation (Win+H) into the transcript box."
             return
         }
-        val dir = File(path)
-        if (!dir.isDirectory) {
-            unavailableReason = "No model directory at $path."
+        val chosen = File(path)
+        if (!chosen.isDirectory) {
+            unavailableReason = "No folder at $path."
+            return
+        }
+        val dir = resolveModelDir(chosen)
+        if (dir == null) {
+            unavailableReason = "$path does not look like a speech model. Choose the folder created " +
+                "when you unpacked the model — the one containing 'am' and 'conf'."
             return
         }
         try {
@@ -75,6 +81,19 @@ class DesktopDictation {
             unavailableReason = "Could not load the speech model: ${e.message ?: e::class.simpleName}"
         }
     }
+
+    /**
+     * Accepts either the model folder itself or a wrapper folder containing it,
+     * since unpacking an archive often creates one extra level.
+     */
+    private fun resolveModelDir(chosen: File): File? {
+        if (looksLikeModel(chosen)) return chosen
+        val nested = chosen.listFiles()?.filter { it.isDirectory && looksLikeModel(it) }.orEmpty()
+        return nested.singleOrNull()
+    }
+
+    private fun looksLikeModel(dir: File): Boolean =
+        File(dir, "conf").isDirectory && (File(dir, "am").isDirectory || File(dir, "graph").isDirectory)
 
     fun start() {
         val loaded = model

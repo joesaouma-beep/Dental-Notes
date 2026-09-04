@@ -40,6 +40,9 @@ import com.dentalstudio.notes.desktop.store.DesktopSettings
 import com.dentalstudio.notes.domain.ToothNotation
 import java.awt.FileDialog
 import java.awt.Frame
+import java.io.File
+import java.util.Locale
+import javax.swing.JFileChooser
 
 @Composable
 fun SettingsPane(model: AppModel, settings: DesktopSettings) {
@@ -235,18 +238,42 @@ private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 /**
- * AWT's directory picker. Compose Desktop has no folder chooser of its own, and
- * this is the native dialog on Windows.
+ * Folder picker.
+ *
+ * Compose Desktop has no folder chooser of its own. AWT's FileDialog can only
+ * be coaxed into choosing a directory on macOS; on Windows and Linux it always
+ * returns a file, which is useless for pointing at a model folder. Swing's
+ * JFileChooser is the one that can select a directory there.
  */
 private fun pickDirectory(): String? {
+    val os = System.getProperty("os.name").orEmpty().lowercase(Locale.ROOT)
+    return if (os.contains("mac")) pickDirectoryNative() else pickDirectorySwing()
+}
+
+private fun pickDirectorySwing(): String? = try {
+    val chooser = JFileChooser().apply {
+        dialogTitle = "Choose the speech model folder"
+        fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+        isAcceptAllFileFilterUsed = false
+    }
+    if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        chooser.selectedFile?.absolutePath
+    } else {
+        null
+    }
+} catch (e: Exception) {
+    null
+}
+
+private fun pickDirectoryNative(): String? {
     val previous = System.getProperty("apple.awt.fileDialogForDirectories")
     return try {
         System.setProperty("apple.awt.fileDialogForDirectories", "true")
         val dialog = FileDialog(null as Frame?, "Choose the speech model folder", FileDialog.LOAD)
         dialog.isVisible = true
         val dir = dialog.directory ?: return null
-        val file = dialog.file
-        if (file == null) dir else java.io.File(dir, file).absolutePath
+        val name = dialog.file ?: return dir
+        File(dir, name).absolutePath
     } catch (e: Exception) {
         null
     } finally {
